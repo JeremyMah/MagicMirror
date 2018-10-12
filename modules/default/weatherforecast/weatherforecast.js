@@ -36,6 +36,7 @@ Module.register("weatherforecast",{
 
 		appendLocationNameToHeader: true,
 		calendarClass: "calendar",
+		tableClass: "small",
 
 		roundTemp: false,
 
@@ -117,7 +118,7 @@ Module.register("weatherforecast",{
 		}
 
 		var table = document.createElement("table");
-		table.className = "small";
+		table.className = this.config.tableClass;
 
 		for (var f in this.forecast) {
 			var forecast = this.forecast[f];
@@ -176,7 +177,7 @@ Module.register("weatherforecast",{
 					rainCell.innerHTML = "";
 				} else {
 					if(config.units !== "imperial") {
-						rainCell.innerHTML = forecast.rain + " mm";
+						rainCell.innerHTML = parseFloat(forecast.rain).toFixed(1) + " mm";
 					} else {
 						rainCell.innerHTML = (parseFloat(forecast.rain) / 25.4).toFixed(2) + " in";
 					}
@@ -333,8 +334,15 @@ Module.register("weatherforecast",{
 			var forecast = data.list[i];
 			this.parserDataWeather(forecast); // hack issue #1017
 
-			var day = moment(forecast.dt, "X").format("ddd");
-			var hour = moment(forecast.dt, "X").format("H");
+			var day;
+			var hour;
+			if(!!forecast.dt_txt) {
+				day = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("ddd");
+				hour = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("H");
+			} else {
+				day = moment(forecast.dt, "X").format("ddd");
+				hour = moment(forecast.dt, "X").format("H");
+			}
 
 			if (day !== lastDay) {
 				var forecastData = {
@@ -342,7 +350,7 @@ Module.register("weatherforecast",{
 					icon: this.config.iconTable[forecast.weather[0].icon],
 					maxTemp: this.roundValue(forecast.temp.max),
 					minTemp: this.roundValue(forecast.temp.min),
-					rain: this.roundValue(forecast.rain)
+					rain: forecast.rain
 				};
 
 				this.forecast.push(forecastData);
